@@ -1,0 +1,235 @@
+
+program 5, 6
+<dependency>
+<groupId>com.google.code.gson</groupId>
+<artifactId>gson</artifactId>
+<version>2.10.1</version>
+</dependency>
+
+mvn compile
+mvn test
+mvn package
+java -cp target/demo-project-1.0-SNAPSHOT.jar com.example.App
+
+
+build.gradle
+plugins {
+id 'java'
+}
+group = 'com.example'
+version = '1.0-SNAPSHOT'
+repositories {
+mavenCentral()
+}
+dependencies {
+testImplementation 'junit:junit:4.13.2'
+}
+
+settings.gradle
+rootProject.name = 'demo-project'
+
+gradle build
+gradle test
+
+java -cp build/libs/demo-project-1.0-SNAPSHOT.jar com.example.App
+
+-------------------------------------------------------------------------------------------
+2.
+STEP 1: Install Docker
+📍 For Windows
+Visit: https://www.docker.com/products/docker-desktop/
+
+Download Docker Desktop for Windows.
+
+Run the .exe installer.
+
+During installation:
+
+Enable WSL 2 (Windows Subsystem for Linux) if prompted.
+
+wsl --install
+wsl --update
+
+wsl --install -d Ubuntu //disrto ubuntu
+
+
+
+
+dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
+
+wsl --set-default-version 2
+
+
+Reboot your system if necessary.
+
+Launch Docker Desktop from Start Menu.
+
+Wait until you see "Docker Desktop is running".
+
+cmd prompt
+docker --version
+docker info
+
+docker pull ubuntu
+
+docker run -it ubuntu
+exit
+
+docker ps
+docker ps -a
+docker stop <container_id>
+docker rm <container_id>
+docker images
+docker rmi <image_id or image_name>
+ (image id n container id) will be displayed on cmd enter the same
+
+
+create folder
+devops_2
+├── app(folder name)
+│   ├── app.py
+│   ├── requirements.txt
+│   └── Dockerfile
+
+app.py
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "Hello from Docker!"
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
+
+requirements.txt
+flask
+
+dockerfile
+FROM python:3.8-slim
+
+WORKDIR /app
+
+COPY . .
+
+RUN pip install -r requirements.txt
+
+CMD ["python", "app.py"]
+
+docker build -t flask-app .
+docker run -d -p 5000:5000 flask-app
+Now, open http://localhost:5000 in your browser. You should see:
+output-Hello from Docker!
+docker login
+docker tag flask-app your_dockerhub_username/flask-app
+docker push your_dockerhub_username/flask-app
+
+--------------------------------------------------------------------------------------------------------------------------
+microservices-lab/
+│
+├── backend/
+│   ├── Dockerfile
+│   ├── app.py
+│   └── requirements.txt
+│
+├── frontend/
+│   ├── Dockerfile
+│   ├── app.py
+│   └── requirements.txt
+│
+└── docker-compose.yml
+
+***backend/Dockerfile
+FROM python:3.9-slim
+
+WORKDIR /app
+
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . /app/
+
+EXPOSE 5000
+
+CMD ["python", "app.py"]
+
+***backend/requirements.txt
+Flask==2.1.1
+Werkzeug==2.0.3
+
+***backend/app.py
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route('/')
+def hello_world():
+    return 'Hello, World! From Backend!'
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5000)
+
+frontend/Dockerfile
+FROM python:3.9-slim
+
+WORKDIR /app
+
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . /app/
+
+EXPOSE 5001
+
+CMD ["python", "app.py"]
+
+****frontend/requirements.txt
+Flask==2.1.1
+Werkzeug==2.0.3requests==2.26.0
+
+
+*****frontend/app.py
+from flask import Flask
+import requests
+
+app = Flask(__name__)
+
+@app.route('/')
+def hello_world():
+    response = requests.get('http://backend:5000')  # Use 'backend' (not hello-service) as it's the service name
+    return f"Frontend says: {response.text}"
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5001)
+
+******docker-compose.yml (at project root)
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "5000:5000"
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "5001:5001"
+    networks:
+      - app-network
+    depends_on:
+      - backend
+
+networks:
+  app-network:
+    driver: bridge
+
+
+docker-compose up --build
+-------------------------------------------------------------------------------------------------
