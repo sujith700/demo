@@ -233,3 +233,16 @@ networks:
 
 docker-compose up --build
 -------------------------------------------------------------------------------------------------
+git config --global user.name "Your Name"
+f) git config --global user.email "you@example.com"
+g) Clone an Existing Repository:
+h) git clone <repository_url>
+i) cd <repo_name>
+j) Modify a File & Commit Changes:
+k) echo "New changes" >> file.txt
+l) git add .
+m) git commit -m "Updated file"
+n) Push to Remote Repository:
+o) git push origin main
+p) Pull Latest Changes:
+q) git pull origin main
